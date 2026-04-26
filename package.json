@@ -1,0 +1,25 @@
+{
+  "name": "react-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --filter=web",
+    "build": "turbo run build --filter=web",
+    "typecheck": "turbo run typecheck --filter=web",
+    "lint": "turbo run lint --filter=web",
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "typecheck:web": "pnpm --filter web typecheck",
+    "lint:web": "pnpm --filter web lint"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.9",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
