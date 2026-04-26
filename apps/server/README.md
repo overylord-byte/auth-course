@@ -1,5 +1,15 @@
-# Server App Placeholder
+# Spring Boot Backend
 
-This folder is reserved for the future backend implementation.
+This directory contains the backend application for the authentication course.
 
-No backend framework or server code is added yet.
+Run locally from this folder:
+
+```bash
+./mvnw spring-boot:run
+```
+
+Run tests:
+
+```bash
+./mvnw test
+```

@@ -1,51 +1,100 @@
-# React TypeScript Monorepo
+# Authentication Course Monorepo
 
-This repository is a clean monorepo foundation for a future authentication course project.
+## Course description
 
-## Structure
+This repository contains an educational course project focused on understanding authentication and authorization mechanisms from the ground up.
 
-- `apps/web`: React + TypeScript + Tailwind CSS frontend (Vite)
-- `apps/server`: backend placeholder for future implementation
+## Project purpose
 
-## Tech stack
+The goal is not only to use framework features, but to understand how authentication works internally across the full stack:
 
-- `pnpm` workspaces
-- `Turborepo` for running tasks from the root
-- `React` + `TypeScript` + `Tailwind CSS` in the frontend
-- `tsc` for type checking
+- HTTP headers
+- cookies
+- sessions
+- tokens
+- OAuth 2.0
+- OpenID Connect
+- PKCE
+- identity providers
+- frontend and backend integration
 
-## Getting started
+## Project structure
 
-1. Install dependencies:
+The monorepo is organized by applications:
+
+- `apps/web` - frontend application used to demonstrate browser and client behavior
+- `apps/server` - backend application built with Spring Boot
+
+## Technologies
+
+- Java
+- Spring Boot
+- React
+- TypeScript
+- HTTP Basic Authentication
+- Session-based authentication
+- JWT
+- OAuth 2.0
+- OpenID Connect
+- PKCE
+- Keycloak
+- LDAP
+- JUnit
+- MockMvc
+
+## Authentication and authorization topics covered
+
+- Authentication vs authorization
+- HTTP headers and cookies
+- HTTP Basic Authentication according to RFC 7617
+- Session store authentication
+- JWT access tokens
+- Refresh tokens
+- OAuth 2.0 authorization code flow
+- PKCE
+- OpenID Connect
+- Keycloak integration
+- LDAP basics and integration
+
+## Branch-based learning flow
+
+Each implementation step can be reviewed in its own branch.
+
+- Basic Authentication: TBD
+- Session Authentication: TBD
+- JWT: TBD
+- OAuth 2.0: TBD
+- OpenID Connect: TBD
+- Keycloak: TBD
+- LDAP: TBD
+
+## How to run the project
+
+1. Clone the repository.
+2. Install frontend dependencies from the repository root:
 
 ```bash
 pnpm install
 ```
 
-2. Start frontend development server:
+3. Start the frontend:
 
 ```bash
-pnpm dev
+pnpm dev:web
 ```
 
-3. Open the app:
+Frontend URL: `http://localhost:5173`
 
-```text
-http://localhost:5173
+4. Start the Spring Boot backend:
+
+```bash
+pnpm dev:server
 ```
 
-## Useful scripts
+Backend URL: `http://localhost:3001`
 
-From the repository root:
+## Development notes
 
-- `pnpm dev` - run frontend in development mode
-- `pnpm build` - build frontend
-- `pnpm typecheck` - run TypeScript type checking (`tsc --noEmit`)
-- `pnpm lint` - run frontend linting
-
-You can also use explicit frontend scripts:
-
-- `pnpm dev:web`
-- `pnpm build:web`
-- `pnpm typecheck:web`
-- `pnpm lint:web`
+- The first implementations are intentionally written without Spring Security.
+- The objective is to understand the protocol and state-management mechanics before introducing framework abstractions.
+- Some implementations are educational and are not production-ready.
