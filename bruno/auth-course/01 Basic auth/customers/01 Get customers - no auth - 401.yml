@@ -1,0 +1,22 @@
+info:
+  name: 01 Get customers - no auth - 401
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{server}}/api/v1/customer"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.status).to.equal(401);
+        expect(res.headers['www-authenticate']).to.equal('Basic realm="course-api"');
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,25 @@
+info:
+  name: 03 Get customers - invalid base64 - 401
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{server}}/api/v1/customer"
+  headers:
+    - name: Authorization
+      value: Basic invalid-base64
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.status).to.equal(401);
+        expect(res.headers['www-authenticate']).to.equal('Basic realm="course-api"');
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
