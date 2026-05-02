@@ -1,0 +1,52 @@
+{
+  "name": "local",
+  "variables": [
+    {
+      "name": "server",
+      "value": "http://localhost:3001",
+      "type": "text",
+      "enabled": true,
+      "secret": false
+    },
+    {
+      "name": "basicUsername",
+      "value": "user",
+      "type": "text",
+      "enabled": true,
+      "secret": false
+    },
+    {
+      "name": "basicPassword",
+      "value": "password",
+      "type": "text",
+      "enabled": true,
+      "secret": false
+    },
+    {
+      "name": "validBasicToken",
+      "value": "dXNlcjpwYXNzd29yZA==",
+      "type": "text",
+      "enabled": true,
+      "secret": false
+    },
+    {
+      "name": "wrongPasswordBasicToken",
+      "value": "dXNlcjp3cm9uZw==",
+      "type": "text",
+      "enabled": true,
+      "secret": false
+    },
+    {
+      "name": "wrongUsernameBasicToken",
+      "value": "dW5rbm93bjpwYXNzd29yZA==",
+      "type": "text",
+      "enabled": true,
+      "secret": false
+    }
+  ],
+  "info": {
+    "type": "bruno-environment",
+    "exportedAt": "2026-05-02T10:42:52.066Z",
+    "exportedUsing": "Bruno/v3.3.0"
+  }
+}
