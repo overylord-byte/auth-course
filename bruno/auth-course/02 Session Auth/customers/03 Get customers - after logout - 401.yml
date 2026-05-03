@@ -1,0 +1,22 @@
+info:
+  name: 03 Get customers - after logout - 401
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{server}}/api/v1/customer"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Expects session cleared after "03 Logout - 200" (run Login → Logout → this request, or full folder flow).
+        expect(res.status).to.equal(401);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
