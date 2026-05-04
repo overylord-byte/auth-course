@@ -1,13 +1,13 @@
 package com.course.auth.controller;
 
 import com.course.auth.service.CustomerService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -18,65 +18,67 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.WWW_AUTHENTICATE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 @SpringBootTest
 class CustomerControllerIntegrationTest {
 
     private static final String CUSTOMER_ENDPOINT = "/api/v1/customer";
-    private static final String AUTH_CHALLENGE = "Basic realm=\"course-api\"";
+    private static final String AUTH_CHALLENGE = "Basic realm=\"course-api\", charset=\"UTF-8\"";
 
-    private MockMvc mockMvc;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+    private final MockMvcTester mockMvc;
 
     @MockitoBean
     private CustomerService customerService;
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    CustomerControllerIntegrationTest(@Autowired WebApplicationContext context) {
+        this.mockMvc = MockMvcTester.create(
+                MockMvcBuilders
+                        .webAppContextSetup(context)
+                        .apply(springSecurity())
+                        .build()
+        );
     }
 
     @Test
-    void shouldReturn401WhenAuthorizationHeaderIsMissing() throws Exception {
-        mockMvc.perform(get(CUSTOMER_ENDPOINT))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().exists(WWW_AUTHENTICATE))
-                .andExpect(header().string(WWW_AUTHENTICATE, AUTH_CHALLENGE));
+    void shouldReturn401WhenAuthorizationHeaderIsMissing() {
+        mockMvc.get().uri(CUSTOMER_ENDPOINT)
+                .assertThat()
+                .hasStatus(HttpStatus.UNAUTHORIZED)
+                .hasHeader(WWW_AUTHENTICATE, AUTH_CHALLENGE);
     }
 
     @Test
-    void shouldReturn401WhenAuthSchemeIsInvalid() throws Exception {
-        mockMvc.perform(get(CUSTOMER_ENDPOINT).header(AUTHORIZATION, "Bearer token"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().exists(WWW_AUTHENTICATE))
-                .andExpect(header().string(WWW_AUTHENTICATE, AUTH_CHALLENGE));
+    void shouldReturn401WhenAuthSchemeIsInvalid() {
+        mockMvc.get().uri(CUSTOMER_ENDPOINT)
+                .header(AUTHORIZATION, "Bearer token")
+                .assertThat()
+                .hasStatus(HttpStatus.UNAUTHORIZED)
+                .hasHeader(WWW_AUTHENTICATE, AUTH_CHALLENGE);
     }
 
     @Test
-    void shouldReturn401WhenBase64IsInvalid() throws Exception {
-        mockMvc.perform(get(CUSTOMER_ENDPOINT).header(AUTHORIZATION, "Basic !!!"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().exists(WWW_AUTHENTICATE))
-                .andExpect(header().string(WWW_AUTHENTICATE, AUTH_CHALLENGE));
+    void shouldReturn401WhenBase64IsInvalid() {
+        mockMvc.get().uri(CUSTOMER_ENDPOINT)
+                .header(AUTHORIZATION, "Basic !!!")
+                .assertThat()
+                .hasStatus(HttpStatus.UNAUTHORIZED)
+                .hasHeader(WWW_AUTHENTICATE, AUTH_CHALLENGE);
     }
 
     @Test
-    void shouldReturn401WhenCredentialsAreWrong() throws Exception {
+    void shouldReturn401WhenCredentialsAreWrong() {
         String wrongCredentials = basicHeader("user", "wrong");
 
-        mockMvc.perform(get(CUSTOMER_ENDPOINT).header(AUTHORIZATION, wrongCredentials))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().exists(WWW_AUTHENTICATE))
-                .andExpect(header().string(WWW_AUTHENTICATE, AUTH_CHALLENGE));
+        mockMvc.get().uri(CUSTOMER_ENDPOINT)
+                .header(AUTHORIZATION, wrongCredentials)
+                .assertThat()
+                .hasStatus(HttpStatus.UNAUTHORIZED)
+                .hasHeader(WWW_AUTHENTICATE, AUTH_CHALLENGE);
     }
 
     @Test
-    void shouldReturn200WhenCredentialsAreValid() throws Exception {
+    void shouldReturn200WhenCredentialsAreValid() {
         when(customerService.getAllCustomers(
                 nullable(String.class),
                 nullable(Integer.class),
@@ -85,8 +87,10 @@ class CustomerControllerIntegrationTest {
 
         String validCredentials = basicHeader("user", "password");
 
-        mockMvc.perform(get(CUSTOMER_ENDPOINT).header(AUTHORIZATION, validCredentials))
-                .andExpect(status().isOk());
+        mockMvc.get().uri(CUSTOMER_ENDPOINT)
+                .header(AUTHORIZATION, validCredentials)
+                .assertThat()
+                .hasStatusOk();
     }
 
     private String basicHeader(String username, String password) {

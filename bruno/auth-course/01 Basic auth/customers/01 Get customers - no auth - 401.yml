@@ -13,7 +13,7 @@ runtime:
     - type: after-response
       code: |-
         expect(res.status).to.equal(401);
-        expect(res.headers['www-authenticate']).to.equal('Basic realm="course-api"');
+        expect(res.headers['www-authenticate']).to.equal('Basic realm="course-api", charset="UTF-8"');
 
 settings:
   encodeUrl: true

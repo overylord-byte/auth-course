@@ -3,6 +3,7 @@ package com.course.auth.config;
 import com.course.auth.controller.CustomerController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -10,17 +11,22 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.http.HttpHeaders.WWW_AUTHENTICATE;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final String BASIC_AUTH_CHALLENGE = "Basic realm=\"course-api\", charset=\"UTF-8\"";
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint)
+            throws Exception {
         http
                 // CSRF protects browser-based sessions; this lesson exposes a stateless JSON API
                 // protected by HTTP Basic only (no cookies / form posts from the same origin).
@@ -31,10 +37,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(CustomerController.CUSTOMER_PATH).authenticated()
                         .anyRequest().permitAll())
-                .httpBasic(basic -> basic.realmName("course-api"))
+                .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint))
                 .formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setHeader(WWW_AUTHENTICATE, BASIC_AUTH_CHALLENGE);
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+        };
     }
 
     @Bean
