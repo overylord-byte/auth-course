@@ -52,7 +52,7 @@ export function LoginForm({
       {errorMessage ? <p className="text-sm text-red-500">{errorMessage}</p> : null}
 
       <Button
-        name={loading ? "Loading..." : "Login with Basic Auth"}
+        name={loading ? "Loading..." : "Login"}
         onClick={onSubmit}
         variant={formValid && fieldsValid ? ButtonVariants.PRIMARY : ButtonVariants.SECONDARY}
       />

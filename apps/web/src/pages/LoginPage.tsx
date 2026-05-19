@@ -1,8 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchCustomersWithBasicAuth } from "../api/customers";
+import { loginWithSession } from "../api/sessionAuth";
 import { LoginForm } from "../components/LoginForm";
-import { useCustomersState } from "../state/CustomersState";
 
 function credentialsValid(username: string, password: string): boolean {
   return username.trim().length > 0 && password.length > 0;
@@ -10,7 +9,6 @@ function credentialsValid(username: string, password: string): boolean {
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { setCustomers } = useCustomersState();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +30,7 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await fetchCustomersWithBasicAuth(username, password);
+      const result = await loginWithSession(username, password);
 
       if (!result.ok) {
         if (result.status === 401) {
@@ -45,7 +43,6 @@ export function LoginPage() {
         return;
       }
 
-      setCustomers(result.customers);
       setUsername("");
       setPassword("");
       navigate("/customers");
@@ -54,7 +51,7 @@ export function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }, [loading, navigate, password, setCustomers, username]);
+  }, [loading, navigate, password, username]);
 
   return (
     <LoginForm
