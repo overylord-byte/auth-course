@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithSession } from "../api/sessionAuth";
+import { loginWithJwt } from "../api/jwtAuth";
+import { useAuth } from "../auth/AuthContext";
 import { LoginForm } from "../components/LoginForm";
 
 function credentialsValid(username: string, password: string): boolean {
@@ -9,6 +10,7 @@ function credentialsValid(username: string, password: string): boolean {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const { setAccessToken } = useAuth();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +32,7 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await loginWithSession(username, password);
+      const result = await loginWithJwt(username, password);
 
       if (!result.ok) {
         if (result.status === 401) {
@@ -43,6 +45,7 @@ export function LoginPage() {
         return;
       }
 
+      setAccessToken(result.accessToken);
       setUsername("");
       setPassword("");
       navigate("/customers");
@@ -51,7 +54,7 @@ export function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }, [loading, navigate, password, username]);
+  }, [loading, navigate, password, setAccessToken, username]);
 
   return (
     <LoginForm

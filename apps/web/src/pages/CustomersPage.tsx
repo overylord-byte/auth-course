@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import type { Customer } from "../api/customers";
-import { fetchCustomersWithSession, logoutSession } from "../api/sessionAuth";
+import { fetchCustomersWithJwt } from "../api/jwtAuth";
+import { useAuth } from "../auth/AuthContext";
 import { CustomersTable } from "../components/CustomersTable";
 import { LogoutButton } from "../components/LogoutButton";
 
 export function CustomersPage() {
   const navigate = useNavigate();
+  const { accessToken, clearAccessToken } = useAuth();
   const [customers, setCustomers] = useState<Customer[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
@@ -14,6 +16,11 @@ export function CustomersPage() {
   const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
+    if (!accessToken) {
+      return;
+    }
+
+    const token = accessToken;
     let cancelled = false;
 
     async function loadCustomers() {
@@ -21,7 +28,7 @@ export function CustomersPage() {
       setErrorMessage(null);
 
       try {
-        const result = await fetchCustomersWithSession();
+        const result = await fetchCustomersWithJwt(token);
 
         if (cancelled) return;
 
@@ -31,6 +38,7 @@ export function CustomersPage() {
         }
 
         if (result.status === 401) {
+          clearAccessToken();
           setUnauthorized(true);
           return;
         }
@@ -52,23 +60,18 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [accessToken, clearAccessToken]);
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = useCallback(() => {
     if (logoutLoading) return;
 
     setLogoutLoading(true);
-    try {
-      await logoutSession();
-    } catch {
-      // Session cookie may already be cleared; still return to login.
-    } finally {
-      setLogoutLoading(false);
-      navigate("/", { replace: true });
-    }
-  }, [logoutLoading, navigate]);
+    clearAccessToken();
+    setLogoutLoading(false);
+    navigate("/", { replace: true });
+  }, [clearAccessToken, logoutLoading, navigate]);
 
-  if (unauthorized) {
+  if (!accessToken || unauthorized) {
     return <Navigate to="/" replace />;
   }
 
@@ -84,7 +87,7 @@ export function CustomersPage() {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-4 px-4 py-10">
         <p className="text-sm text-red-500">{errorMessage}</p>
-        <LogoutButton loading={logoutLoading} onLogout={() => void handleLogout()} />
+        <LogoutButton loading={logoutLoading} onLogout={handleLogout} />
       </main>
     );
   }
@@ -102,7 +105,7 @@ export function CustomersPage() {
             Protected endpoint response: {customers.length} record(s)
           </p>
         </div>
-        <LogoutButton loading={logoutLoading} onLogout={() => void handleLogout()} />
+        <LogoutButton loading={logoutLoading} onLogout={handleLogout} />
       </section>
       <CustomersTable customers={customers} />
     </main>

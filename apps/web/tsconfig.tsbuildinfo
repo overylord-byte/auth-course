@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/pages/basicauthpage.tsx","./src/services/basicauthcustomerapi.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/customers.ts","./src/api/jwtauth.ts","./src/auth/authcontext.tsx","./src/components/customerstable.tsx","./src/components/loginform.tsx","./src/components/logoutbutton.tsx","./src/pages/customerspage.tsx","./src/pages/loginpage.tsx"],"version":"5.9.3"}
