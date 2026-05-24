@@ -1,0 +1,26 @@
+info:
+  name: 05 Get customers - expired token - 401
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{server}}/api/v1/customer"
+  headers:
+    - name: Authorization
+      value: Bearer {{expiredJwtToken}}
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // This scenario is fully covered by backend integration tests.
+        // To try it manually: create a token with exp in the past and paste it into {{expiredJwtToken}}.
+        expect(res.status).to.equal(401);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

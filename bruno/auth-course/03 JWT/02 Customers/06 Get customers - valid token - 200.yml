@@ -1,0 +1,25 @@
+info:
+  name: 06 Get customers - valid token - 200
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{server}}/api/v1/customer"
+  headers:
+    - name: Authorization
+      value: Bearer {{jwtAccessToken}}
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Run "01 Login - valid credentials - 200" first so jwtAccessToken is stored in collection variables.
+        expect(res.status, 'Run "01 Login - valid credentials - 200" first so jwtAccessToken is available.').to.equal(200);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
