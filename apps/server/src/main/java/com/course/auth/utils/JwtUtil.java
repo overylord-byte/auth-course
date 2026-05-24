@@ -16,6 +16,11 @@ public class JwtUtil {
                 .encodeToString(message.getBytes(StandardCharsets.UTF_8));
     }
 
+    public static String base64UrlDecode(String encoded) {
+        byte[] decodedBytes = Base64.getUrlDecoder().decode(encoded);
+        return new String(decodedBytes, StandardCharsets.UTF_8);
+    }
+
     public static String sign(String message, String secret) {
         try {
             Mac mac = Mac.getInstance(HMAC_SHA256);
