@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "turbo run dev --filter=web",
     "build": "turbo run build --filter=web",
-    "typecheck": "turbo run typecheck --filter=web",
+    "typecheck":  "turbo run typecheck --filter=web",
     "lint": "turbo run lint --filter=web",
     "dev:web": "pnpm --filter web dev",
     "build:web": "pnpm --filter web build",

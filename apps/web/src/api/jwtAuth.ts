@@ -2,7 +2,7 @@ import type { Customer } from "./customers";
 
 const API_ROOT = import.meta.env.VITE_API_URL ?? "";
 
-type LoginResponseBody = {
+type TokenResponseBody = {
   accessToken?: string;
   tokenType?: string;
   expiresIn?: number;
@@ -20,8 +20,9 @@ export async function loginWithJwt(
   username: string,
   password: string,
 ): Promise<LoginWithJwtResult> {
-  const response = await fetch(`${API_ROOT}/api/v1/auth/login`, {
+  const response = await fetch(`${API_ROOT}/api/v1/auth/accessToken`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -36,13 +37,51 @@ export async function loginWithJwt(
     return { ok: false, status: response.status };
   }
 
-  const body = (await response.json()) as LoginResponseBody;
+  const body = (await response.json()) as TokenResponseBody;
 
   if (!body.accessToken) {
     return { ok: false, status: response.status };
   }
 
   return { ok: true, accessToken: body.accessToken };
+}
+
+export type RefreshAccessTokenResult =
+  | { ok: true; accessToken: string }
+  | { ok: false; status: number };
+
+export async function refreshAccessToken(): Promise<RefreshAccessTokenResult> {
+  const response = await fetch(`${API_ROOT}/api/v1/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    return { ok: false, status: response.status };
+  }
+
+  const body = (await response.json()) as TokenResponseBody;
+
+  if (!body.accessToken) {
+    return { ok: false, status: response.status };
+  }
+
+  return { ok: true, accessToken: body.accessToken };
+}
+
+export type LogoutWithJwtResult = { ok: true } | { ok: false; status: number };
+
+export async function logoutWithJwt(): Promise<LogoutWithJwtResult> {
+  const response = await fetch(`${API_ROOT}/api/v1/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    return { ok: false, status: response.status };
+  }
+
+  return { ok: true };
 }
 
 export type FetchCustomersWithJwtResult =
