@@ -6,6 +6,7 @@ import com.course.auth.dto.LogoutResponse;
 import com.course.auth.service.SessionAuthenticationResult;
 import com.course.auth.service.SessionAuthenticationService;
 import com.course.auth.service.SessionStore;
+import com.course.auth.web.SessionCookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class AuthController {
     public static final String SESSION_COOKIE_NAME = "SESSION_ID";
 
     private final SessionAuthenticationService sessionAuthenticationService;
+    private final SessionCookieManager sessionCookieManager;
     private final SessionStore sessionStore;
 
     @PostMapping(LOGIN_PATH)
@@ -38,13 +40,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
 
-        ResponseCookie cookie = ResponseCookie.from(SESSION_COOKIE_NAME, result.sessionId())
-                .httpOnly(true)
-                .path("/")
-                .sameSite("Lax")
-                .maxAge(Duration.ofMinutes(15))
-                .build();
-
+        ResponseCookie cookie = sessionCookieManager.create(result.sessionId());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new LoginResponse(true, result.username()));
@@ -57,13 +53,7 @@ public class AuthController {
             sessionStore.deleteSession(sessionId);
         }
 
-        ResponseCookie cookie = ResponseCookie.from(SESSION_COOKIE_NAME, "")
-                .httpOnly(true)
-                .path("/")
-                .sameSite("Lax")
-                .maxAge(Duration.ZERO)
-                .build();
-
+        ResponseCookie cookie = sessionCookieManager.clear();
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new LogoutResponse(true));
