@@ -1,7 +1,9 @@
-package com.course.auth.config;
+package com.course.auth.security.config;
 
 import com.course.auth.controller.AuthController;
 import com.course.auth.controller.CustomerController;
+import com.course.auth.security.RestLogoutSuccessHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -29,8 +31,10 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            RestLogoutSuccessHandler restLogoutSuccessHandler,
+            @Value("${server.servlet.session.cookie.name}") String sessionCookieName) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
@@ -45,7 +49,16 @@ public class SecurityConfig {
                         securityContext.securityContextRepository(securityContextRepository())
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable);
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(
+                        logout ->
+                                logout
+                                        .logoutUrl(AuthController.LOGOUT_PATH)
+                                        .clearAuthentication(true)
+                                        .invalidateHttpSession(true)
+                                        .deleteCookies(sessionCookieName)
+                                        .logoutSuccessHandler(restLogoutSuccessHandler)
+                );
 
         return http.build();
     }

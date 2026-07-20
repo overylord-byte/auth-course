@@ -1,7 +1,6 @@
 package com.course.auth.controller;
 
 import com.course.auth.dto.LoginRequest;
-import com.course.auth.dto.LoginResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.http.HttpHeaders.COOKIE;
 import static org.springframework.http.HttpHeaders.SET_COOKIE;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -91,21 +91,27 @@ class CustomerControllerIntegrationTest {
         HttpResponse<String> response = logout();
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.headers().firstValue(SET_COOKIE)).isPresent();
-        assertThat(response.headers().firstValue(SET_COOKIE).get()).contains(SESSION_COOKIE_NAME);
-        assertThat(response.headers().firstValue(SET_COOKIE).get()).contains("Max-Age=0");
+        assertThat(response.headers().firstValue(SET_COOKIE).get()).contains(SESSION_COOKIE_NAME + "=;");
         assertThat(response.body()).contains("loggedOut");
     }
 
     @Test
     void shouldReturn401WhenUsingSessionCookieAfterLogout() throws Exception {
         LoginRequest loginRequest = new LoginRequest("user", "password");
-        login(loginRequest.username(), loginRequest.password());
-
-        HttpResponse<String> logoutResponse = logout();
-        assertThat(logoutResponse.statusCode()).isEqualTo(200);
-
+        HttpResponse<String> loginResponse = login(loginRequest.username(), loginRequest.password());
+        String cookieSessionId = loginResponse.headers().firstValue(SET_COOKIE).get().split(";")[0];
         HttpResponse<String> getCustomersResponse = getCustomers();
-        assertThat(getCustomersResponse.statusCode()).isEqualTo(401);
+        assertThat(getCustomersResponse.statusCode()).isEqualTo(200);
+
+        logout();
+
+        HttpClient newHttpClientWithoutCookieManager = HttpClient.newBuilder().build();
+        HttpResponse<String> getCustomersResponse2 = newHttpClientWithoutCookieManager.send(HttpRequest.newBuilder()
+                .uri(new URI(uri(CUSTOMER_ENDPOINT)))
+                .header(COOKIE, cookieSessionId)
+                .GET()
+                .build(), HttpResponse.BodyHandlers.ofString());
+        assertThat(getCustomersResponse2.statusCode()).isEqualTo(401);
     }
 
     private String uri(String path) {
