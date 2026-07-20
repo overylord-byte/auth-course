@@ -1,17 +1,14 @@
 package com.course.auth.controller;
 
 import com.course.auth.dto.LoginRequest;
-import com.course.auth.service.CustomerService;
+import com.course.auth.dto.LoginResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.data.domain.Page;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import tools.jackson.databind.ObjectMapper;
 
-import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
@@ -20,8 +17,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.SET_COOKIE;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -44,8 +39,6 @@ class CustomerControllerIntegrationTest {
     void setUp() {
         CookieManager cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(cookieManager);
-
         httpClient = HttpClient.newBuilder().cookieHandler(cookieManager).build();
     }
 
@@ -67,6 +60,15 @@ class CustomerControllerIntegrationTest {
     }
 
     @Test
+    void shouldLoggedInAndReturnListOfCustomers() throws Exception {
+        LoginRequest loginRequest = new LoginRequest("user", "password");
+        login(loginRequest.username(), loginRequest.password());
+        HttpResponse<String> getCustomersResponse = getCustomers();
+        assertThat(getCustomersResponse.statusCode()).isEqualTo(200);
+        assertThat(getCustomersResponse.body()).contains("content");
+    }
+
+    @Test
     void shouldReturn401AndNotSetCookieWhenLoginCredentialsAreInvalid() throws Exception {
         LoginRequest loginRequest = new LoginRequest("user", "wrong");
         HttpResponse<String> response = login(loginRequest.username(), loginRequest.password());
@@ -76,18 +78,9 @@ class CustomerControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturn401WhenSessionCookieIsMissing() throws Exception {
-        LoginRequest loginRequest = new LoginRequest("user", "wrong");
-        HttpResponse<String> response = login(loginRequest.username(), loginRequest.password());
-
-        assertThat(response.statusCode()).isEqualTo(401);
-        assertThat(response.headers().firstValue(SET_COOKIE)).isNotPresent();
-    }
-
-    @Test
-    void shouldReturn200WhenSessionCookieIsValid() throws Exception {
-        LoginRequest loginRequest = new LoginRequest("user", "wrong");
-        login(loginRequest.username(), loginRequest.password());
+    void shouldReturn401WhenSessionIsMissing() throws Exception {
+        HttpResponse<String> getCustomersResponse = getCustomers();
+        assertThat(getCustomersResponse.statusCode()).isEqualTo(401);
     }
 
     @Test
@@ -106,12 +99,12 @@ class CustomerControllerIntegrationTest {
     @Test
     void shouldReturn401WhenUsingSessionCookieAfterLogout() throws Exception {
         LoginRequest loginRequest = new LoginRequest("user", "password");
-        HttpResponse<String> loginResponse = login(loginRequest.username(), loginRequest.password());
+        login(loginRequest.username(), loginRequest.password());
 
         HttpResponse<String> logoutResponse = logout();
         assertThat(logoutResponse.statusCode()).isEqualTo(200);
 
-        HttpResponse<String> getCustomersResponse = getCustomers(loginResponse.headers().firstValue(SET_COOKIE).get());
+        HttpResponse<String> getCustomersResponse = getCustomers();
         assertThat(getCustomersResponse.statusCode()).isEqualTo(401);
     }
 
@@ -139,10 +132,9 @@ class CustomerControllerIntegrationTest {
         return httpClient.send(logoutRequest, HttpResponse.BodyHandlers.ofString());
     }
 
-    private HttpResponse<String> getCustomers(String cookie) throws Exception {
+    private HttpResponse<String> getCustomers() throws Exception {
         HttpRequest getCustomersRequest = HttpRequest.newBuilder()
                 .uri(new URI(uri(CUSTOMER_ENDPOINT)))
-                .header("Cookie", cookie)
                 .GET()
                 .build();
 
