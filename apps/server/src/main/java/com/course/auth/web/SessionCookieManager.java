@@ -13,6 +13,8 @@ public class SessionCookieManager {
     public ResponseCookie create(String sessionId) {
         return ResponseCookie.from(SESSION_COOKIE_NAME, sessionId)
                 .path("/")
+                .httpOnly(true)
+                .sameSite("Lax")
                 .maxAge(SESSION_EXPIRATION)
                 .build();
     }
