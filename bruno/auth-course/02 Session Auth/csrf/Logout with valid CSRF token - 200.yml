@@ -1,0 +1,23 @@
+info:
+  name: Logout with valid CSRF token - 200
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{server}}/api/v1/auth/logout"
+  headers:
+    - name: "{{csrfHeaderName}}"
+      value: "{{csrfToken}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: expect(res.status).to.equal(200);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

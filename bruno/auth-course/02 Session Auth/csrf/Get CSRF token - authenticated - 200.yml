@@ -1,0 +1,24 @@
+info:
+  name: Get CSRF token - authenticated - 200
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{server}}/api/v1/auth/csrf"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.status).to.equal(200);
+
+        bru.setVar("csrfToken", res.body.token);
+        bru.setVar("csrfHeaderName", res.body.headerName);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
