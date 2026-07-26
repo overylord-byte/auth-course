@@ -1,6 +1,6 @@
 package com.course.auth.security.config;
 
-import com.course.auth.controller.AuthController;
+import com.course.auth.api.AuthenticationApi;
 import com.course.auth.controller.CustomerController;
 import com.course.auth.security.RestLogoutSuccessHandler;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,9 +41,9 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(AuthController.LOGIN_PATH).permitAll()
+                        .requestMatchers(AuthenticationApi.LOGIN_PATH).permitAll()
                         .requestMatchers(CustomerController.CUSTOMER_PATH).authenticated()
-                        .requestMatchers(AuthController.LOGOUT_PATH).permitAll()
+                        .requestMatchers(AuthenticationApi.LOGOUT_PATH).permitAll()
                         .anyRequest().permitAll())
                 .securityContext(securityContext ->
                         securityContext.securityContextRepository(securityContextRepository())
@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .logout(
                         logout ->
                                 logout
-                                        .logoutUrl(AuthController.LOGOUT_PATH)
+                                        .logoutUrl(AuthenticationApi.LOGOUT_PATH)
                                         .clearAuthentication(true)
                                         .invalidateHttpSession(true)
                                         .deleteCookies(sessionCookieName)

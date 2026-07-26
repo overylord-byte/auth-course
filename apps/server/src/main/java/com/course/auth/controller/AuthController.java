@@ -1,5 +1,6 @@
 package com.course.auth.controller;
 
+import com.course.auth.api.AuthenticationApi;
 import com.course.auth.dto.LoginRequest;
 import com.course.auth.dto.LoginResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,15 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    public static final String LOGIN_PATH = "/api/v1/auth/login";
-    public static final String LOGOUT_PATH = "/api/v1/auth/logout";
-
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
     private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
 
-
-    @PostMapping(LOGIN_PATH)
+    @PostMapping(AuthenticationApi.LOGIN_PATH)
     public ResponseEntity<?> login(
             @RequestBody LoginRequest body,
             HttpServletRequest request,
