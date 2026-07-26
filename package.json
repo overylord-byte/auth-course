@@ -10,6 +10,7 @@
     "build": "turbo run build --filter=web",
     "typecheck": "turbo run typecheck --filter=web",
     "lint": "turbo run lint --filter=web",
+    "dev:csrf-attacker": "jwebserver -b 0.0.0.0 -p 9000 -d .\\demos\\csrf",
     "dev:web": "pnpm --filter web dev",
     "build:web": "pnpm --filter web build",
     "typecheck:web": "pnpm --filter web typecheck",

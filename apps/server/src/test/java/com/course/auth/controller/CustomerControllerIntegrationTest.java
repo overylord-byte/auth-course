@@ -25,10 +25,10 @@ class CustomerControllerIntegrationTest {
     @LocalServerPort
     private int port;
 
-    private static final String CUSTOMER_ENDPOINT = "/api/v1/customer";
-    private static final String LOGIN_ENDPOINT = "/api/v1/auth/login";
-    private static final String LOGOUT_ENDPOINT = "/api/v1/auth/logout";
-    private static final String SESSION_COOKIE_NAME = "SESSION_ID";
+    private final String CUSTOMER_ENDPOINT = "/api/v1/customer";
+    private final String LOGIN_ENDPOINT = "/api/v1/auth/login";
+    private final String LOGOUT_ENDPOINT = "/api/v1/auth/logout";
+    private final String SESSION_COOKIE_NAME = "SESSION_ID";
 
     @Autowired
     private ObjectMapper objectMapper;
