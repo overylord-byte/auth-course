@@ -1,9 +1,13 @@
 package com.course.auth.web;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Service
 public class SessionCookieManager {
@@ -24,5 +28,14 @@ public class SessionCookieManager {
                 .path("/")
                 .maxAge(0)
                 .build();
+    }
+
+    public Optional<String> readSessionId(HttpServletRequest request) {
+        return Optional.ofNullable(request.getCookies())
+                .stream()
+                .flatMap(Arrays::stream)
+                .filter(cookie -> cookie.getName().equals(SESSION_COOKIE_NAME))
+                .map(Cookie::getValue)
+                .findFirst();
     }
 }

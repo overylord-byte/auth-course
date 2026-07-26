@@ -123,11 +123,11 @@ class CsrfIntegrationTest {
 
         CookieManager cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        HttpClient newHttpClientWithoutCookieManager = HttpClient.newBuilder().cookieHandler(cookieManager).build();
-        HttpResponse<String> anotherLoginResponse = login("user", "password", newHttpClientWithoutCookieManager);
+        HttpClient newHttpClient = HttpClient.newBuilder().cookieHandler(cookieManager).build();
+        HttpResponse<String> anotherLoginResponse = login("user", "password", newHttpClient);
         assertThat(anotherLoginResponse.statusCode()).isEqualTo(200);
 
-        HttpResponse<String> csrfTokenSecond = getCsrfToken(newHttpClientWithoutCookieManager);
+        HttpResponse<String> csrfTokenSecond = getCsrfToken(newHttpClient);
         assertThat(csrfTokenSecond.statusCode()).isEqualTo(200);
         JsonNode csrfRootTreeSecond = objectMapper.readTree(csrfTokenSecond.body());
         JsonNode tokenNodeSecond = csrfRootTreeSecond.get("token");
@@ -135,6 +135,8 @@ class CsrfIntegrationTest {
 
         HttpResponse<String> logoutResponse = logoutWithCsrfToken(tokenSecond, CSRF_HEADER_NAME);
         assertThat(logoutResponse.statusCode()).isEqualTo(403);
+        HttpResponse<String> customersResponse = getCustomers();
+        assertThat(customersResponse.statusCode()).isEqualTo(200);
     }
 
     @Test

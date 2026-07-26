@@ -17,16 +17,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
+import static com.course.auth.api.AuthenticationApi.LOGIN_PATH;
+import static com.course.auth.api.AuthenticationApi.LOGOUT_PATH;
+import static com.course.auth.web.SessionCookieManager.SESSION_COOKIE_NAME;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
-
-    public static final String LOGIN_PATH = "/api/v1/auth/login";
-    public static final String LOGOUT_PATH = "/api/v1/auth/logout";
-    public static final String SESSION_COOKIE_NAME = "SESSION_ID";
-
     private final SessionAuthenticationService sessionAuthenticationService;
     private final SessionCookieManager sessionCookieManager;
     private final SessionStore sessionStore;

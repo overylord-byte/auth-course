@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
-
-import static com.course.auth.controller.AuthController.SESSION_COOKIE_NAME;
+import static com.course.auth.web.SessionCookieManager.SESSION_COOKIE_NAME;
 
 @RestController
 @RequiredArgsConstructor
