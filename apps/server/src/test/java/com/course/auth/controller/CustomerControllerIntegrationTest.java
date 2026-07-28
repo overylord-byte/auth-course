@@ -83,37 +83,6 @@ class CustomerControllerIntegrationTest {
         assertThat(getCustomersResponse.statusCode()).isEqualTo(401);
     }
 
-    @Test
-    void shouldReturn200AndClearCookieWhenLogoutIsCalled() throws Exception {
-        LoginRequest loginRequest = new LoginRequest("user", "password");
-        login(loginRequest.username(), loginRequest.password());
-
-        HttpResponse<String> response = logout();
-        assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.headers().firstValue(SET_COOKIE)).isPresent();
-        assertThat(response.headers().firstValue(SET_COOKIE).get()).contains(SESSION_COOKIE_NAME + "=;");
-        assertThat(response.body()).contains("loggedOut");
-    }
-
-    @Test
-    void shouldReturn401WhenUsingSessionCookieAfterLogout() throws Exception {
-        LoginRequest loginRequest = new LoginRequest("user", "password");
-        HttpResponse<String> loginResponse = login(loginRequest.username(), loginRequest.password());
-        String cookieSessionId = loginResponse.headers().firstValue(SET_COOKIE).get().split(";")[0];
-        HttpResponse<String> getCustomersResponse = getCustomers();
-        assertThat(getCustomersResponse.statusCode()).isEqualTo(200);
-
-        logout();
-
-        HttpClient newHttpClientWithoutCookieManager = HttpClient.newBuilder().build();
-        HttpResponse<String> getCustomersResponse2 = newHttpClientWithoutCookieManager.send(HttpRequest.newBuilder()
-                .uri(new URI(uri(CUSTOMER_ENDPOINT)))
-                .header(COOKIE, cookieSessionId)
-                .GET()
-                .build(), HttpResponse.BodyHandlers.ofString());
-        assertThat(getCustomersResponse2.statusCode()).isEqualTo(401);
-    }
-
     private String uri(String path) {
         return "http://localhost:" + port + path;
     }

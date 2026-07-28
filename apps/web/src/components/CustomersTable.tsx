@@ -1,4 +1,4 @@
-import type { Customer } from "../api/customers";
+import {Customer} from "../api/customers/sessionCustomers.ts";
 
 type CustomersTableProps = {
   customers: Customer[];

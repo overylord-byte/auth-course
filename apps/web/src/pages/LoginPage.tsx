@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginWithSession } from "../api/sessionAuth";
+import { loginWithSession } from "../api/auth/sessionAuth";
 import { LoginForm } from "../components/LoginForm";
 
 function credentialsValid(username: string, password: string): boolean {

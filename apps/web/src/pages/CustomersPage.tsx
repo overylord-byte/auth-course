@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import type { Customer } from "../api/customers";
-import { fetchCustomersWithSession, logoutSession } from "../api/sessionAuth";
+import { logoutSession } from "../api/auth/sessionAuth";
+import {Customer, fetchCustomersWithSession} from "../api/customers/sessionCustomers";
 import { CustomersTable } from "../components/CustomersTable";
 import { LogoutButton } from "../components/LogoutButton";
 
