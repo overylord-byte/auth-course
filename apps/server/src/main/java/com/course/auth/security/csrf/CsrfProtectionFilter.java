@@ -13,8 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.course.auth.api.AuthenticationApi.LOGIN_PATH;
 import static com.course.auth.api.CsrfApi.CSRF_HEADER_NAME;
@@ -22,7 +21,8 @@ import static com.course.auth.api.CsrfApi.CSRF_HEADER_NAME;
 @Component
 @RequiredArgsConstructor
 public class CsrfProtectionFilter extends OncePerRequestFilter {
-    private final String SAFE_METHODS = "GET,HEAD,OPTIONS,TRACE";
+    private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
+
     private final CsrfTokenService csrfTokenService;
     private final SessionStore sessionStore;
     private final SessionCookieManager sessionCookieManager;
@@ -35,7 +35,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
         }
 
         // Other exceptions
-        if (Objects.equals(request.getPathInfo(), LOGIN_PATH)) {
+        if (Objects.equals(request.getServletPath(), LOGIN_PATH)) {
             return true;
         }
 

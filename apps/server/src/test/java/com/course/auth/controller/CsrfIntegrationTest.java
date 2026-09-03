@@ -148,6 +148,21 @@ class CsrfIntegrationTest {
         assertThat(customersResponse.statusCode()).isEqualTo(200);
     }
 
+    @Test
+    void shouldReturn401WhenCsrfTokenIsRequestedWithoutSession() throws Exception {
+        HttpResponse<String> csrfResponse = getCsrfToken();
+        assertThat(csrfResponse.statusCode()).isEqualTo(401);
+    }
+
+    @Test
+    void shouldAllowLoginWithoutCsrfTokenWhenSessionAlreadyExists() throws Exception {
+        HttpResponse<String> loginResponse = login("user", "password");
+        assertThat(loginResponse.statusCode()).isEqualTo(200);
+
+        HttpResponse<String> loginResponse2 = login("user", "password");
+        assertThat(loginResponse2.statusCode()).isEqualTo(200);
+    }
+
     private HttpResponse<String> login(String username, String password) throws Exception {
         LoginRequest loginRequest = new LoginRequest(username, password);
 
