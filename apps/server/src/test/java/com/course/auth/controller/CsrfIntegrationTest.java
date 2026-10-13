@@ -16,7 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -72,6 +72,29 @@ class CsrfIntegrationTest {
 
         String parameterName = parameterNameNode.asText();
         assertThat(parameterName).isEqualTo("_csrf");
+    }
+
+    @Test
+    void shouldReturn403AndNotSetCookieWhenLogoutHasNoSessionCookie() throws Exception {
+        HttpResponse<String> logoutResponse = logoutWithoutCsrf();
+
+        assertThat(logoutResponse.statusCode()).isEqualTo(403);
+        assertThat(logoutResponse.headers().allValues("Set-Cookie")).isEmpty();
+    }
+
+    @Test
+    void shouldReturn403AndNotSetCookieWhenLogoutHasUnknownSession() throws Exception {
+        HttpRequest logoutRequest = HttpRequest.newBuilder()
+                .uri(new URI(uri(LOGOUT_ENDPOINT)))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .header("Cookie", "SESSION_ID=unknown-session")
+                .build();
+
+        HttpResponse<String> logoutResponse = httpClient.send(
+                logoutRequest, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(logoutResponse.statusCode()).isEqualTo(403);
+        assertThat(logoutResponse.headers().allValues("Set-Cookie")).isEmpty();
     }
 
     @Test

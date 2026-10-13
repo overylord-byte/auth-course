@@ -3,22 +3,26 @@ package com.course.auth.controller;
 import com.course.auth.dto.LoginRequest;
 import com.course.auth.dto.LoginResponse;
 import com.course.auth.dto.LogoutResponse;
+import com.course.auth.dto.SessionResponse;
 import com.course.auth.service.SessionAuthenticationResult;
 import com.course.auth.service.SessionAuthenticationService;
 import com.course.auth.service.SessionStore;
 import com.course.auth.web.SessionCookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.course.auth.api.AuthenticationApi.LOGIN_PATH;
 import static com.course.auth.api.AuthenticationApi.LOGOUT_PATH;
+import static com.course.auth.api.AuthenticationApi.SESSION_PATH;
 import static com.course.auth.web.SessionCookieManager.SESSION_COOKIE_NAME;
 
 @RestController
@@ -27,6 +31,18 @@ public class AuthController {
     private final SessionAuthenticationService sessionAuthenticationService;
     private final SessionCookieManager sessionCookieManager;
     private final SessionStore sessionStore;
+
+    @GetMapping(SESSION_PATH)
+    public ResponseEntity<SessionResponse> getSession(
+            @CookieValue(value = SESSION_COOKIE_NAME, required = false) String sessionId) {
+        return sessionStore.getSession(sessionId)
+                .map(session -> ResponseEntity.ok()
+                        .cacheControl(CacheControl.noStore())
+                        .body(new SessionResponse(true, session.username())))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .cacheControl(CacheControl.noStore())
+                        .build());
+    }
 
     @PostMapping(LOGIN_PATH)
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {

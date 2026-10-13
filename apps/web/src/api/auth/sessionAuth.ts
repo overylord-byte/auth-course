@@ -30,10 +30,14 @@ function isSessionLost(
     return "sessionLost" in result;
 }
 
-export async function ensureCsrfToken(): Promise<EnsureCsrfTokenResult> {
-    const cached = getCsrfToken();
-    if (cached) {
-        return {ok: true, csrf: cached};
+export async function ensureCsrfToken(forceRefreshToken: boolean = false): Promise<EnsureCsrfTokenResult> {
+    if (forceRefreshToken) {
+        clearCsrfToken();
+    } else {
+        const cached = getCsrfToken();
+        if (cached) {
+            return {ok: true, csrf: cached};
+        }
     }
 
     const response = await apiFetch("/api/v1/auth/csrf", {
@@ -44,6 +48,7 @@ export async function ensureCsrfToken(): Promise<EnsureCsrfTokenResult> {
     });
 
     if (response.status === 401) {
+        clearCsrfToken();
         return {ok: false, sessionLost: true};
     }
 
@@ -80,6 +85,7 @@ export async function loginWithSession(
         return {ok: false, status: response.status};
     }
 
+    clearCsrfToken();
     const body = await readJsonBody<LoginResponseBody>(response);
     const csrfResult = await ensureCsrfToken();
     if (!csrfResult.ok) {
@@ -102,7 +108,7 @@ export type LogoutSessionResult =
     | { ok: false; status: number };
 
 export async function logoutSession(): Promise<LogoutSessionResult> {
-    const csrfResult = await ensureCsrfToken();
+    const csrfResult = await ensureCsrfToken(true);
     if (!csrfResult.ok) {
         if (isSessionLost(csrfResult)) {
             clearCsrfToken();

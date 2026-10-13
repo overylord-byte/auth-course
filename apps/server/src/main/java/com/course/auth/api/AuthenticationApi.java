@@ -5,6 +5,7 @@ public final class AuthenticationApi {
 
     public static final String LOGIN_PATH = AUTH_PATH + "/login";
     public static final String LOGOUT_PATH = AUTH_PATH + "/logout";
+    public static final String SESSION_PATH = AUTH_PATH + "/session";
 
 
     private AuthenticationApi() {

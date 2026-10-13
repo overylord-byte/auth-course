@@ -1,76 +1,82 @@
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { loginWithSession } from "../api/auth/sessionAuth";
-import { LoginForm } from "../components/LoginForm";
+import {useCallback, useState} from "react";
+import {loginWithSession} from "../api/auth/sessionAuth";
+import {LoginForm} from "../components/LoginForm";
+import {useAuth} from "../auth/auth.context.ts";
 
 function credentialsValid(username: string, password: string): boolean {
-  return username.trim().length > 0 && password.length > 0;
+    return username.trim().length > 0 && password.length > 0;
 }
 
 export function LoginPage() {
-  const navigate = useNavigate();
+    const {signIn, clearSession} = useAuth();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [fieldsValid, setFieldsValid] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [fieldsValid, setFieldsValid] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = useCallback(async () => {
-    if (loading) return;
+    const handleSubmit = useCallback(async () => {
+        if (loading) return;
 
-    const valid = credentialsValid(username, password);
-    setFieldsValid(valid);
-    if (!valid) {
-      setErrorMessage("Enter username and password.");
-      return;
-    }
-
-    setErrorMessage(null);
-    setLoading(true);
-
-    try {
-      const result = await loginWithSession(username, password);
-
-      if (!result.ok) {
-        if (result.status === 401) {
-          setFieldsValid(false);
-          setErrorMessage("Invalid credentials. Please check your username and password.");
-          return;
+        const valid = credentialsValid(username, password);
+        setFieldsValid(valid);
+        if (!valid) {
+            setErrorMessage("Enter username and password.");
+            return;
         }
 
-        setErrorMessage("Login failed. Please try again.");
-        return;
-      }
-
-      setUsername("");
-      setPassword("");
-      navigate("/customers");
-    } catch {
-      setErrorMessage("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [loading, navigate, password, username]);
-
-  return (
-    <LoginForm
-      username={username}
-      password={password}
-      fieldsValid={fieldsValid}
-      loading={loading}
-      errorMessage={errorMessage}
-      onUsernameChange={(value) => {
-        setUsername(value);
-        setFieldsValid(true);
         setErrorMessage(null);
-      }}
-      onPasswordChange={(value) => {
-        setPassword(value);
-        setFieldsValid(true);
-        setErrorMessage(null);
-      }}
-      onSubmit={() => void handleSubmit()}
-    />
-  );
+        setLoading(true);
+
+        try {
+            const result = await loginWithSession(username, password);
+
+            if (!result.ok) {
+                if ("sessionLost" in result) {
+                    clearSession();
+                    setErrorMessage("Your session expired. Please sign in again.");
+                    return;
+                }
+
+                if (result.status === 401) {
+                    setFieldsValid(false);
+                    setErrorMessage("Invalid credentials. Please check your username and password.");
+                    return;
+                }
+
+                setErrorMessage("Login failed. Please try again.");
+                return;
+            }
+
+            setUsername("");
+            setPassword("");
+            signIn(result.username);
+        } catch {
+            setErrorMessage("Network error. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }, [loading, signIn, clearSession, password, username]);
+
+    return (
+        <LoginForm
+            username={username}
+            password={password}
+            fieldsValid={fieldsValid}
+            loading={loading}
+            errorMessage={errorMessage}
+            onUsernameChange={(value) => {
+                setUsername(value);
+                setFieldsValid(true);
+                setErrorMessage(null);
+            }}
+            onPasswordChange={(value) => {
+                setPassword(value);
+                setFieldsValid(true);
+                setErrorMessage(null);
+            }}
+            onSubmit={() => void handleSubmit()}
+        />
+    );
 }

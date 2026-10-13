@@ -46,13 +46,13 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Optional<String> sessionId = sessionCookieManager.readSessionId(request);
         if (sessionId.isEmpty()) {
-            filterChain.doFilter(request, response);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Session id is missing");
             return;
         }
 
         Optional<SessionData> sessionData = sessionStore.getSession(sessionId.get());
         if (sessionData.isEmpty()) {
-            filterChain.doFilter(request, response);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Session in server doesn't exist");
             return;
         }
 

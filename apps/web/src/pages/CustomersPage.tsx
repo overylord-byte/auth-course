@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { logoutSession } from "../api/auth/sessionAuth";
+import { useAuth } from "../auth/auth.context.ts";
 import {Customer, fetchCustomersWithSession} from "../api/customers/sessionCustomers";
 import { CustomersTable } from "../components/CustomersTable";
 import { LogoutButton } from "../components/LogoutButton";
 
 export function CustomersPage() {
-  const navigate = useNavigate();
+  const {clearSession} = useAuth();
+  const customersRequest = useRef<ReturnType<typeof fetchCustomersWithSession> | null>(null);
   const [customers, setCustomers] = useState<Customer[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [unauthorized, setUnauthorized] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,7 +22,8 @@ export function CustomersPage() {
       setErrorMessage(null);
 
       try {
-        const result = await fetchCustomersWithSession();
+        customersRequest.current ??= fetchCustomersWithSession();
+        const result = await customersRequest.current;
 
         if (cancelled) return;
 
@@ -31,7 +33,7 @@ export function CustomersPage() {
         }
 
         if (result.status === 401) {
-          setUnauthorized(true);
+          clearSession();
           return;
         }
 
@@ -52,25 +54,29 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [clearSession]);
 
   const handleLogout = useCallback(async () => {
     if (logoutLoading) return;
 
     setLogoutLoading(true);
+    setLogoutError(null);
     try {
-      await logoutSession();
+      const result = await logoutSession();
+      if (result.ok || "sessionLost" in result) {
+        clearSession();
+        return;
+      }
+
+      setLogoutError(result.status === 403
+        ? "Logout was rejected. Please try again."
+        : "Logout failed. Please try again.");
     } catch {
-      // Session cookie may already be cleared; still return to login.
+      setLogoutError("Network error. Logout could not be confirmed. Please try again.");
     } finally {
       setLogoutLoading(false);
-      navigate("/", { replace: true });
     }
-  }, [logoutLoading, navigate]);
-
-  if (unauthorized) {
-    return <Navigate to="/" replace />;
-  }
+  }, [logoutLoading, clearSession]);
 
   if (loading) {
     return (
@@ -84,13 +90,14 @@ export function CustomersPage() {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-4 px-4 py-10">
         <p className="text-sm text-red-500">{errorMessage}</p>
+        {logoutError && <p role="alert" className="text-sm text-red-500">{logoutError}</p>}
         <LogoutButton loading={logoutLoading} onLogout={() => void handleLogout()} />
       </main>
     );
   }
 
   if (!customers) {
-    return <Navigate to="/" replace />;
+    return null;
   }
 
   return (
@@ -104,6 +111,7 @@ export function CustomersPage() {
         </div>
         <LogoutButton loading={logoutLoading} onLogout={() => void handleLogout()} />
       </section>
+      {logoutError && <p role="alert" className="text-sm text-red-500">{logoutError}</p>}
       <CustomersTable customers={customers} />
     </main>
   );
